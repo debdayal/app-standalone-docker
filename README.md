@@ -10,3 +10,7 @@
 > ./start.sh
 
 > docker ps -a
+
+Scaling up a service like:
+
+> docker-compose -p app user-service=2
