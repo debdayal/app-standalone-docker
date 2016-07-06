@@ -1,9 +1,11 @@
 # app-standalone-docker
+> git clone https://github.com/debdayal/app-standalone-docker.git
+
 > vagrant up
 
 > vagrant ssh
 
-> docker --version && docker-machine --version && docker-compose --version
+> docker --version && docker-compose --version
 
 > cd /vagrant/app-project/
 
