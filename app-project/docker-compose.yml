@@ -8,10 +8,12 @@ services:
       - mongodb-data:/data/db
     networks:
       - app-network
+
   config-server:
     image: debdayal/config-server
     networks:
       - app-network
+
   eureka-server:
     image: debdayal/eureka-server
     ports:
@@ -24,6 +26,7 @@ services:
     depends_on:
       - config-server
     entrypoint: ./wait-for-it.sh config-server:8888 -- ./run.sh --debug
+
   user-service:
     image: debdayal/user-service
     environment:
@@ -36,18 +39,8 @@ services:
       - config-server
       - mongodb
     entrypoint: ./wait-for-it.sh eureka-server:8761 -- ./run.sh --debug
-  gateway-1:
-    image: debdayal/gateway
-    environment:
-      SPRING_PROFILES_ACTIVE: docker
-      SPRING_CLOUD_CONFIG_URI: http://config-server:8888
-    networks:
-      - app-network
-    depends_on:
-      - eureka-server
-      - config-server
-    entrypoint: ./wait-for-it.sh eureka-server:8761 -- ./run.sh --debug
-  gateway-2:
+
+  gateway:
     image: debdayal/gateway
     environment:
       SPRING_PROFILES_ACTIVE: docker
@@ -60,22 +53,19 @@ services:
     entrypoint: ./wait-for-it.sh eureka-server:8761 -- ./run.sh --debug
 
   api-load-balancer:
-    image: debdayal/haproxy-api
+    image: dockercloud/haproxy
     ports:
       - "8001:1936"
+    depends_on:
+      - gateway
+    environment:
+      ADDITIONAL_SERVICES: app:gateway
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
     networks:
       - app-network
-    depends_on:
-      - gateway-1
-      - gateway-2
 
-  user-ui-1:
-    image: debdayal/user-ui
-    depends_on:
-      - api-load-balancer
-    networks:
-      - app-network
-  user-ui-2:
+  user-ui:
     image: debdayal/user-ui
     depends_on:
       - api-load-balancer
@@ -83,15 +73,18 @@ services:
       - app-network
 
   ui-load-balancer:
-    image: debdayal/haproxy-ui
+    image: dockercloud/haproxy
+    depends_on:
+      - user-ui
+    environment:
+      ADDITIONAL_SERVICES: app:gateway
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
     ports:
       - "80:80"
       - "8002:1936"
     networks:
       - app-network
-    depends_on:
-      - user-ui-1
-      - user-ui-2
 
   docker-ui:
     image: uifd/ui-for-docker
