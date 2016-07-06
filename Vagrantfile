@@ -15,5 +15,5 @@ Vagrant.configure(2) do |config|
      vb.name = "standalone"
   end
   config.vm.provision :shell, path: "provision/bootstrap.sh"
-  config.vm.provision :shell, inline: 'PYTHONUNBUFFERED=1 ansible-playbook -v -s /vagrant/provision/ansible/prov.yml -c local'
+  config.vm.provision :shell, inline: 'PYTHONUNBUFFERED=1 ansible-playbook -s /vagrant/provision/ansible/prov.yml -c local'
 end
